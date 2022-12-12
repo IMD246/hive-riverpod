@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "117630969159",
+    "project_id": "testappwithhive",
+    "storage_bucket": "testappwithhive.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:117630969159:android:4657225c14570b21fa9862",
+        "android_client_info": {
+          "package_name": "com.example.testappwithhive"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "117630969159-1r2ci6oclg1q2co242kcqmqvp6npf28l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDOcmVik5prqx9X9Q6vJ7GXXxnF4tQguxM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "117630969159-1r2ci6oclg1q2co242kcqmqvp6npf28l.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
