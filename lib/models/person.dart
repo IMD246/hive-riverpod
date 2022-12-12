@@ -10,9 +10,9 @@ class Person extends HiveObject {
   @HiveField(0)
   String? id;
   @HiveField(1)
-  final String name;
+  String name;
   @HiveField(2)
-  final int age;
+  int age;
   Person({
     String? id,
     required this.name,

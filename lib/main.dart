@@ -50,8 +50,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void dispose() {
     Hive.close();
-    nameController.dispose();
-    ageController.dispose();
+    // nameController.dispose();
+    // ageController.dispose();
     super.dispose();
   }
 

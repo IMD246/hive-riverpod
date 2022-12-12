@@ -1,29 +1,14 @@
+import 'dart:developer';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 
 import '../../models/person.dart';
 
-List<Person> persons = [
-  Person(
-    id: "1",
-    name: "123",
-    age: 4,
-  ),
-  Person(
-    id: "2",
-    name: "1234",
-    age: 5,
-  ),
-  Person(
-    id: "3",
-    name: "12345",
-    age: 6,
-  ),
-];
-
 class PersonNotifier extends ChangeNotifier {
   late Box<Person> _persons;
-  late List<Person> listPerson;
+  List<Person> listPerson = [];
   bool isLoading = false;
   PersonNotifier() {
     init();
@@ -35,33 +20,88 @@ class PersonNotifier extends ChangeNotifier {
       Hive.registerAdapter(PersonAdapter());
     }
     _persons = await Hive.openBox('persons');
+    // listPerson = _persons.values.toList();
     await getPersons();
     isLoading = false;
   }
 
   Future<void> getPersons() async {
-    listPerson = _persons.values.toList();
+    int count = 0;
+    await FirebaseFirestore.instance.collection('persons').get().then((event) {
+      for (var d in event.docs) {
+        log(d.data().toString());
+        final person = Person.fromMap(d.data());
+        log(person.toString());
+      }
+      // return event.docs.map((e) {
+      //   // log(event.docs.elementAt(0).data().toString());
+      //   log(e.toString());
+      //   return e.data().toString();
+      //   // log(event.size.toString());
+
+      //   // return event.docs.map((e) {
+      //   //   count++;
+      //   //   final person = Person.fromMap(e.data());
+      //   //   log(count.toString());
+      //   //   log(person.toString());
+      //   //   return;
+      //   // });
+      // });
+    });
+
+    // log(value.size.toString());
+    // log(value.docs.map((e) => ));
+    // value.docs.map((e) {
+    //   final person = Person.fromMap(e.data());
+    //   log(person.toString());
+    //   // listPerson.add(Person.fromMap(e.data()))
+    // });
+    // log(value.docs.map((e)));
+    // log(value.docChanges.toString());
+    // if (_persons.values.isNotEmpty) {
+    //   listPerson = _persons.values.to;
+    // }
+    // listPerson = _persons.values.toList();
     notifyListeners();
   }
 
   Future<void> add(Person newPerson) async {
-    await _persons.add(newPerson);
-    await getPersons();
+    await FirebaseFirestore.instance
+        .collection('persons')
+        .doc(newPerson.id)
+        .set(newPerson.toMap());
+
+    // await _persons.put(
+    //   newPerson.id.toString(),
+    //   newPerson,
+    // );
+
+    listPerson.add(newPerson);
+
     notifyListeners();
   }
 
   Future<void> edit({required Person oldPerson}) async {
-    final getPerson = _persons.values.firstWhere(
+    final getIndex = listPerson.indexWhere(
       (element) => element.id == oldPerson.id,
     );
-    _persons.put(getPerson.key, oldPerson);
-    await getPersons();
+    final getPerson = listPerson[getIndex];
+
+    await _persons.put(getPerson.key, oldPerson);
+
+    listPerson[getIndex] = listPerson[getIndex].copyWith(
+      age: oldPerson.age,
+      name: oldPerson.name,
+    );
+
     notifyListeners();
   }
 
   Future<void> remove({required Person? person}) async {
     await _persons.delete(person?.key);
-    await getPersons();
+
+    listPerson.remove(person);
+
     notifyListeners();
   }
 }
