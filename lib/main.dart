@@ -28,6 +28,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       home: MyHomePage(),
     );
@@ -50,8 +51,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void dispose() {
     Hive.close();
-    // nameController.dispose();
-    // ageController.dispose();
+    nameController.dispose();
+    ageController.dispose();
     super.dispose();
   }
 
@@ -86,7 +87,9 @@ class PersonsWidget extends ConsumerWidget {
       builder: (context, ref, child) {
         final provider = ref.watch(personProvider);
         if (provider.isLoading) {
-          return const CircularProgressIndicator();
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
         }
         return ListView.builder(
           itemCount: provider.listPerson.length,
@@ -102,7 +105,7 @@ class PersonsWidget extends ConsumerWidget {
 
 class PersonItem extends ConsumerWidget {
   const PersonItem({super.key, required this.person});
-  final Person? person;
+  final Person person;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ListTile(
@@ -132,7 +135,9 @@ class PersonItem extends ConsumerWidget {
 
 TextEditingController nameController = TextEditingController();
 TextEditingController ageController = TextEditingController();
-Future createOrUpdatePerson({required BuildContext context, Person? person}) {
+
+Future<Person?> createOrUpdatePerson(
+    {required BuildContext context, Person? person}) {
   String name = person?.name ?? "";
 
   int? age = person?.age;

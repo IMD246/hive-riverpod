@@ -14,55 +14,35 @@ class PersonNotifier extends ChangeNotifier {
     init();
   }
   Future<void> init() async {
-    isLoading = true;
     notifyListeners();
     if (!Hive.isAdapterRegistered(PersonAdapter().typeId)) {
       Hive.registerAdapter(PersonAdapter());
     }
     _persons = await Hive.openBox('persons');
-    // listPerson = _persons.values.toList();
+    listPerson = _persons.values.toList();
     await getPersons();
-    isLoading = false;
   }
 
   Future<void> getPersons() async {
-    int count = 0;
+    isLoading = true;
+    notifyListeners();
     await FirebaseFirestore.instance.collection('persons').get().then((event) {
       for (var d in event.docs) {
         log(d.data().toString());
         final person = Person.fromMap(d.data());
+        parsePerson(id: d.id, person: person);
         log(person.toString());
       }
-      // return event.docs.map((e) {
-      //   // log(event.docs.elementAt(0).data().toString());
-      //   log(e.toString());
-      //   return e.data().toString();
-      //   // log(event.size.toString());
-
-      //   // return event.docs.map((e) {
-      //   //   count++;
-      //   //   final person = Person.fromMap(e.data());
-      //   //   log(count.toString());
-      //   //   log(person.toString());
-      //   //   return;
-      //   // });
-      // });
     });
-
-    // log(value.size.toString());
-    // log(value.docs.map((e) => ));
-    // value.docs.map((e) {
-    //   final person = Person.fromMap(e.data());
-    //   log(person.toString());
-    //   // listPerson.add(Person.fromMap(e.data()))
-    // });
-    // log(value.docs.map((e)));
-    // log(value.docChanges.toString());
-    // if (_persons.values.isNotEmpty) {
-    //   listPerson = _persons.values.to;
-    // }
-    // listPerson = _persons.values.toList();
+    isLoading = false;
     notifyListeners();
+  }
+
+  Future<void> parsePerson({required String id, required Person person}) async {
+    if (!_persons.containsKey(id)) {
+      await add(person);
+      listPerson.add(person);
+    }
   }
 
   Future<void> add(Person newPerson) async {
@@ -71,10 +51,10 @@ class PersonNotifier extends ChangeNotifier {
         .doc(newPerson.id)
         .set(newPerson.toMap());
 
-    // await _persons.put(
-    //   newPerson.id.toString(),
-    //   newPerson,
-    // );
+    await _persons.put(
+      newPerson.id.toString(),
+      newPerson,
+    );
 
     listPerson.add(newPerson);
 
@@ -85,20 +65,31 @@ class PersonNotifier extends ChangeNotifier {
     final getIndex = listPerson.indexWhere(
       (element) => element.id == oldPerson.id,
     );
+
     final getPerson = listPerson[getIndex];
+    if (getIndex >= 0) {
+      await FirebaseFirestore.instance
+          .collection('persons')
+          .doc(oldPerson.id)
+          .update(oldPerson.toMap());
 
-    await _persons.put(getPerson.key, oldPerson);
+      await _persons.put(getPerson.id, oldPerson);
 
-    listPerson[getIndex] = listPerson[getIndex].copyWith(
-      age: oldPerson.age,
-      name: oldPerson.name,
-    );
-
-    notifyListeners();
+      listPerson[getIndex] = listPerson[getIndex].copyWith(
+        age: oldPerson.age,
+        name: oldPerson.name,
+      );
+      notifyListeners();
+    }
   }
 
-  Future<void> remove({required Person? person}) async {
-    await _persons.delete(person?.key);
+  Future<void> remove({required Person person}) async {
+    await FirebaseFirestore.instance
+        .collection('persons')
+        .doc(person.id)
+        .delete();
+
+    await _persons.delete(person.id);
 
     listPerson.remove(person);
 
